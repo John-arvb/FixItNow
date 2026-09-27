@@ -1,0 +1,52 @@
+Task for Javascript:
+
+Ikaw an mag kukuans an website nga magin functional an mga button
+and any.
+
+Tasks:
+1. Repair Request
+    -pag gin pindot san user an sumbit repair Request
+    mag shoshow dapat "Repair Request submitted successfully!"
+
+2. Form Validation
+Check if the user filled out:
+    -Name
+    -Contact
+    -Equpiment
+    -Problem description
+
+if mayda nawawara sa need filled upan dapat mag pop:
+    "Please complete all required fields"
+
+3. Track Request:
+Create ka simple request tracking feature.
+
+Example:
+
+User enters:
+
+    Req ID: 23132
+
+    Then mag display dapat si java:
+
+    Request Status:
+    In repair 
+
+tapos puyde mo ibutang an mga statuses nga:
+    -pending
+    -under Review
+    -in repair 
+    -completed 
+
+4.Buttons: 
+dapat an mga button such as:
+    -Reqest a repair
+    -Track my Request 
+    -Submit Request 
+
+    mag rerespond pag gin click
+
+so imo goal:
+    magin interactive aton website instead of just a static design.
+
+    

@@ -1,0 +1,25 @@
+Task For Style/Css:
+
+Make the FitItNox Web look professional naman
+
+1.Design:
+    -Choose a suitable color palette(saimo ko na anay itun ig hatag tapos reviohon ko nala)
+    -Design the navigator
+    -Style the Home Section
+    -Create service cards
+    -style the repair Form-
+    -style buttons
+    -Creat hover effects
+    -add spacing and proper alignment
+    -Make it reponsive for mobile
+
+    for example sa design:
+    colors:
+        -Dark blue/navy -> technology
+        -Blue -> Trust worhty
+        -White -> clean background(pero boring)
+        -orange/red -> repair/action buttons
+        ikaw sana bahala kun nano imo basta malipyo kitaon
+
+imo goal is:
+    ig turn mo an kan julliver html into clean repair-service webiste.
