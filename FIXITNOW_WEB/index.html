@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FixItNow – Online Equipment Repair Request & Service Management</title>
+  </head>
+
+  <body>
+
+    <nav style="display:flex; justify-content:space-between; align-items:center; padding:12px 24px; border-bottom:1px solid #ccc;">
+      <a href="#" onclick="showPage('home')">FixItNow</a>
+      <ul style="list-style:none; display:flex; gap:12px; margin:0; padding:0;">
+        <li><a href="#" onclick="showPage('home')">Home</a></li>
+        <li><a href="#" onclick="showPage('services')">Services</a></li>
+        <li><a href="#" onclick="showPage('how-it-works')">How It Works</a></li>
+        <li><a href="#" onclick="showPage('track')">Track Request</a></li>
+        <li><a href="#" onclick="showPage('payment')">Payment</a></li>
+        <li><a href="#" onclick="showPage('contact')">Contact</a></li>
+        <li><a href="#" onclick="showPage('request')">Request Repair</a></li>
+      </ul>
+    </nav>
+
+    <section id="home">
+      <h1>Your Equipment Broken? We Fix It Now.</h1>
+      <p>Submit a repair request online, track its progress in real time, and get your equipment back fast and hassle-free.</p>
+      <a href="#" onclick="showPage('request')">Request a Repair</a>
+      <a href="#" onclick="showPage('track')">Track My Request</a>
+    </section>
+
+    <section id="services" hidden>
+      <h2>Our Repair Services</h2>
+      <p>We handle a wide range of equipment — from everyday gadgets to office machines.</p>
+
+      <div>
+        <div>
+          <h3>Computer Repair</h3>
+          <p>Desktop computers, all-in-ones, hardware upgrades, virus removal, and OS issues.</p>
+        </div>
+        <div>
+          <h3>Phone Repair</h3>
+          <p>Screen replacement, battery issues, charging ports, and water damage for all brands.</p>
+        </div>
+        <div>
+          <h3>Laptop Repair</h3>
+          <p>Keyboard, display, motherboard, RAM, SSD upgrades, and overheating problems.</p>
+        </div>
+        <div>
+          <h3>Other Equipment</h3>
+          <p>Printers, scanners, tablets, routers, and other electronic office equipment.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works" hidden>
+      <h2>How It Works</h2>
+      <p>Getting your equipment repaired is easy — just follow these five simple steps.</p>
+
+      <ol>
+        <li>
+          <h3>Submit Request</h3>
+          <p>Fill out the repair form with your equipment details and problem description.</p>
+        </li>
+        <li>
+          <h3>Request Reviewed</h3>
+          <p>Our technician reviews your request and contacts you with an assessment.</p>
+        </li>
+        <li>
+          <h3>Equipment Repaired</h3>
+          <p>Your device is repaired by our skilled technicians using quality parts.</p>
+        </li>
+        <li>
+          <h3>Status Updated</h3>
+          <p>You receive an update when your repair is done and ready for pickup.</p>
+        </li>
+        <li>
+          <h3>Completed!</h3>
+          <p>Pick up your fully repaired equipment — good as new!</p>
+        </li>
+      </ol>
+    </section>
+
+    <section id="request" hidden>
+      <h2>Submit a Repair Request</h2>
+      <p>Fill out the form below and our team will get back to you as soon as possible.</p>
+
+      <form>
+        <div>
+          <label for="fullname">Full Name *</label><br />
+          <input type="text" id="fullname" name="fullname" placeholder="e.g. Juan dela Cruz" required />
+        </div>
+        <div>
+          <label for="contact">Contact Number *</label><br />
+          <input type="tel" id="contact" name="contact" placeholder="e.g. 09xx-xxx-xxxx" required />
+        </div>
+        <div>
+          <label for="email">Email Address *</label><br />
+          <input type="email" id="email" name="email" placeholder="e.g. juan@email.com" required />
+        </div>
+        <div>
+          <label for="equipment">Equipment Type *</label><br />
+          <select id="equipment" name="equipment" required>
+            <option value="" disabled selected>Select equipment</option>
+            <option value="computer">Desktop Computer</option>
+            <option value="laptop">Laptop</option>
+            <option value="phone">Mobile Phone</option>
+            <option value="tablet">Tablet</option>
+            <option value="printer">Printer / Scanner</option>
+            <option value="other">Other Equipment</option>
+          </select>
+        </div>
+        <div>
+          <label for="date">Preferred Service Date *</label><br />
+          <input type="date" id="date" name="date" required />
+        </div>
+        <div>
+          <label for="problem">Problem Description *</label><br />
+          <textarea id="problem" name="problem" placeholder="Describe the issue — what happened, when it started, any error messages, etc." required></textarea>
+        </div>
+        <div>
+          <button type="submit">Submit Repair Request</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="payment" hidden>
+      <h2>E-Wallet Payment</h2>
+      <p>Pay conveniently after receiving your repair quote. We accept the following e-wallets.</p>
+
+      <div>
+        <div>
+          <h3>GCash</h3>
+          <p>Account Name: FixItNow Repairs</p>
+          <p>Number: 0917-123-4567</p>
+        </div>
+        <div>
+          <h3>Maya (PayMaya)</h3>
+          <p>Account Name: FixItNow Repairs</p>
+          <p>Number: 0932-765-4321</p>
+        </div>
+        <div>
+          <h3>ShopeePay</h3>
+          <p>Account Name: FixItNow Repairs</p>
+          <p>Number: 0917-123-4567</p>
+        </div>
+      </div>
+
+      <div>
+        <h3>Payment Instructions</h3>
+        <ol>
+          <li>Wait for a repair quote from our technician.</li>
+          <li>Send the exact amount to your preferred e-wallet above.</li>
+          <li>Take a screenshot of your payment confirmation.</li>
+          <li>Send the screenshot to support@fixitnow.ph or via our contact number.</li>
+          <li>Include your Ticket ID as the payment reference.</li>
+        </ol>
+      </div>
+
+      <div>
+        <h3>Upload Payment Proof</h3>
+        <form>
+          <div>
+            <label for="ticketRef">Ticket ID *</label><br />
+            <input type="text" id="ticketRef" name="ticketRef" placeholder="e.g. FIN-00123" required />
+          </div>
+          <div>
+            <label for="paymentMethod">E-Wallet Used *</label><br />
+            <select id="paymentMethod" name="paymentMethod" required>
+              <option value="" disabled selected>Select e-wallet</option>
+              <option value="gcash">GCash</option>
+              <option value="maya">Maya (PayMaya)</option>
+              <option value="shopeepay">ShopeePay</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="paymentAmount">Amount Paid (PHP) *</label><br />
+            <input type="number" id="paymentAmount" name="paymentAmount" placeholder="e.g. 500" min="1" required />
+          </div>
+          <div>
+            <label for="paymentScreenshot">Payment Screenshot *</label><br />
+            <input type="file" id="paymentScreenshot" name="paymentScreenshot" accept="image/*" required />
+          </div>
+          <div>
+            <button type="submit">Submit Payment Proof</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="track" hidden>
+      <h2>Track My Request</h2>
+      <p>Enter your ticket ID to check the current status of your repair.</p>
+
+      <div>
+        <label for="trackInput">Ticket ID</label><br />
+        <input type="text" id="trackInput" name="trackInput" placeholder="Enter Ticket ID (e.g. FIN-00123)" />
+        <button type="button">Check Status</button>
+      </div>
+    </section>
+
+    <section id="contact" hidden>
+      <h2>Get In Touch</h2>
+      <p>Have questions? Reach out to us through any of the channels below.</p>
+
+      <div>
+        <div>
+          <h3>Our Location</h3>
+          <p>123 Repair Street, Brgy. Tech<br />Cebu City, Philippines</p>
+        </div>
+        <div>
+          <h3>Phone / SMS</h3>
+          <p>0917-123-4567<br />0932-765-4321</p>
+        </div>
+        <div>
+          <h3>Email</h3>
+          <p>support@fixitnow.ph<br />admin@fixitnow.ph</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>
+        <div>
+          <p><strong>FixItNow</strong></p>
+          <p>An online equipment repair request and service management system. Fast, reliable, and hassle-free repairs at your fingertips.</p>
+        </div>
+
+        <div>
+          <h4>Contact Info</h4>
+          <ul>
+            <li>123 Repair Street, Cebu City</li>
+            <li>0917-123-4567</li>
+            <li>support@fixitnow.ph</li>
+          </ul>
+        </div>
+      </div>
+      <hr />
+      <p>© 2026 FixItNow. All rights reserved.</p>
+    </footer>
+
+    <script>
+      const pages = ['home', 'services', 'how-it-works', 'request', 'payment', 'track', 'contact'];
+
+      function showPage(id) {
+        pages.forEach(function(page) {
+          var el = document.getElementById(page);
+          if (el) {
+            if (page === id) {
+              el.removeAttribute('hidden');
+            } else {
+              el.setAttribute('hidden', '');
+            }
+          }
+        });
+        window.scrollTo(0, 0);
+      }
+    </script>
+
+  </body>
+</html>
