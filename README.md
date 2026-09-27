@@ -1,12 +1,12 @@
-**FixItNow**
+## FixItNow
 
-**Project Overview**
+## Project Overview
 
 FixItNow is a web-based equipment repair request and service management system. It allows users to submit repair requests, view service information, and track the status of their requests.
 
 The website is designed to make the repair process easier by organizing customer requests and showing clear updates from submission to completion.
 
-**Features**
+# Features
 
 * Submit an equipment repair request
 * Enter customer and equipment information
@@ -19,7 +19,7 @@ The website is designed to make the repair process easier by organizing customer
 * Use a simple and responsive interface
 * Validate required form fields
 
-**Technologies Used**
+# Technologies Used
 
 * HTML
 * CSS
@@ -28,7 +28,7 @@ The website is designed to make the repair process easier by organizing customer
 * GitHub
 * Visual Studio Code
 
-**Project Structure**
+# Project Structure
 
 * FixItNow/ — main project folder
 
@@ -37,7 +37,7 @@ The website is designed to make the repair process easier by organizing customer
   * script.js — website functionality and interactions
   * README.md — project documentation
 
-**How It Works**
+# How It Works
 
 The user starts by viewing the FixItNow website and selecting the service or repair they need.
 
