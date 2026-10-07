@@ -1,16 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FixItNow – Online Equipment Repair Request & Service Management</title>
+    <link rel="stylesheet" href="style.css" />
+    <title>
+      FixItNow – Online Equipment Repair Request & Service Management
+    </title>
   </head>
 
   <body>
 
-    <nav style="display:flex; justify-content:space-between; align-items:center; padding:12px 24px; border-bottom:1px solid #ccc;">
+    <nav
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 24px;
+        border-bottom: 1px solid #ccc;
+      "
+    >
       <a href="#" onclick="showPage('home')">FixItNow</a>
-      <ul style="list-style:none; display:flex; gap:12px; margin:0; padding:0;">
+      <ul
+        style="
+          list-style: none;
+          display: flex;
+          gap: 12px;
+          margin: 0;
+          padding: 0;
+        "
+      >
         <li><a href="#" onclick="showPage('home')">Home</a></li>
         <li><a href="#" onclick="showPage('services')">Services</a></li>
         <li><a href="#" onclick="showPage('how-it-works')">How It Works</a></li>
@@ -23,55 +42,87 @@
 
     <section id="home">
       <h1>Your Equipment Broken? We Fix It Now.</h1>
-      <p>Submit a repair request online, track its progress in real time, and get your equipment back fast and hassle-free.</p>
+      <p>
+        Submit a repair request online, track its progress in real time, and get
+        your equipment back fast and hassle-free.
+      </p>
       <a href="#" onclick="showPage('request')">Request a Repair</a>
       <a href="#" onclick="showPage('track')">Track My Request</a>
     </section>
 
     <section id="services" hidden>
       <h2>Our Repair Services</h2>
-      <p>We handle a wide range of equipment — from everyday gadgets to office machines.</p>
+      <p>
+        We handle a wide range of equipment — from everyday gadgets to office
+        machines.
+      </p>
 
       <div>
         <div>
           <h3>Computer Repair</h3>
-          <p>Desktop computers, all-in-ones, hardware upgrades, virus removal, and OS issues.</p>
+          <p>
+            Desktop computers, all-in-ones, hardware upgrades, virus removal,
+            and OS issues.
+          </p>
         </div>
         <div>
           <h3>Phone Repair</h3>
-          <p>Screen replacement, battery issues, charging ports, and water damage for all brands.</p>
+          <p>
+            Screen replacement, battery issues, charging ports, and water damage
+            for all brands.
+          </p>
         </div>
         <div>
           <h3>Laptop Repair</h3>
-          <p>Keyboard, display, motherboard, RAM, SSD upgrades, and overheating problems.</p>
+          <p>
+            Keyboard, display, motherboard, RAM, SSD upgrades, and overheating
+            problems.
+          </p>
         </div>
         <div>
           <h3>Other Equipment</h3>
-          <p>Printers, scanners, tablets, routers, and other electronic office equipment.</p>
+          <p>
+            Printers, scanners, tablets, routers, and other electronic office
+            equipment.
+          </p>
         </div>
       </div>
     </section>
 
     <section id="how-it-works" hidden>
       <h2>How It Works</h2>
-      <p>Getting your equipment repaired is easy — just follow these five simple steps.</p>
+      <p>
+        Getting your equipment repaired is easy — just follow these five simple
+        steps.
+      </p>
 
       <ol>
         <li>
           <h3>Submit Request</h3>
-          <p>Fill out the repair form with your equipment details and problem description.</p>
+          <p>
+            Fill out the repair form with your equipment details and problem
+            description.
+          </p>
         </li>
         <li>
           <h3>Request Reviewed</h3>
-          <p>Our technician reviews your request and contacts you with an assessment.</p>
+          <p>
+            Our technician reviews your request and contacts you with an
+            assessment.
+          </p>
         </li>
         <li>
           <h3>Equipment Repaired</h3>
-          <p>Your device is repaired by our skilled technicians using quality parts.</p>
+          <p>
+            Your device is repaired by our skilled technicians using quality
+            parts.
+          </p>
         </li>
         <li>
           <h3>Status Updated</h3>
-          <p>You receive an update when your repair is done and ready for pickup.</p>
+          <p>
+            You receive an update when your repair is done and ready for pickup.
+          </p>
         </li>
         <li>
           <h3>Completed!</h3>
@@ -82,21 +133,43 @@
 
     <section id="request" hidden>
       <h2>Submit a Repair Request</h2>
-      <p>Fill out the form below and our team will get back to you as soon as possible.</p>
+      <p>
+        Fill out the form below and our team will get back to you as soon as
+        possible.
+      </p>
 
       <form>
         <div>
           <label for="fullname">Full Name *</label><br />
-          <input type="text" id="fullname" name="fullname" placeholder="e.g. Juan dela Cruz" required />
+          <input
+            type="text"
+            id="fullname"
+            name="fullname"
+            placeholder="e.g. Juan dela Cruz"
+            required
+          />
         </div>
         <div>
-          <label for="contact">Contact Number *</label><br />
-          <input type="tel" id="contact" name="contact" placeholder="e.g. 09xx-xxx-xxxx" required />
+          <label for="contactNumber">Contact Number *</label><br />
+          <input
+    type="tel"
+    id="contactNumber"
+    name="contact"
+    placeholder="e.g. 09171234567"
+    maxlength="11"
+    required
+/>
         </div>
-        <div>
-          <label for="email">Email Address *</label><br />
-          <input type="email" id="email" name="email" placeholder="e.g. juan@email.com" required />
-        </div>
+          <div>
+            <label for="email">Email Address *</label><br />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="e.g. juan@email.com"
+              required
+            />
+          </div>
         <div>
           <label for="equipment">Equipment Type *</label><br />
           <select id="equipment" name="equipment" required>
@@ -115,7 +188,12 @@
         </div>
         <div>
           <label for="problem">Problem Description *</label><br />
-          <textarea id="problem" name="problem" placeholder="Describe the issue — what happened, when it started, any error messages, etc." required></textarea>
+          <textarea
+            id="problem"
+            name="problem"
+            placeholder="Describe the issue — what happened, when it started, any error messages, etc."
+            required
+          ></textarea>
         </div>
         <div>
           <button type="submit">Submit Repair Request</button>
@@ -125,7 +203,10 @@
 
     <section id="payment" hidden>
       <h2>E-Wallet Payment</h2>
-      <p>Pay conveniently after receiving your repair quote. We accept the following e-wallets.</p>
+      <p>
+        Pay conveniently after receiving your repair quote. We accept the
+        following e-wallets.
+      </p>
 
       <div>
         <div>
@@ -151,7 +232,10 @@
           <li>Wait for a repair quote from our technician.</li>
           <li>Send the exact amount to your preferred e-wallet above.</li>
           <li>Take a screenshot of your payment confirmation.</li>
-          <li>Send the screenshot to support@fixitnow.ph or via our contact number.</li>
+          <li>
+            Send the screenshot to support@fixitnow.ph or via our contact
+            number.
+          </li>
           <li>Include your Ticket ID as the payment reference.</li>
         </ol>
       </div>
@@ -161,7 +245,13 @@
         <form>
           <div>
             <label for="ticketRef">Ticket ID *</label><br />
-            <input type="text" id="ticketRef" name="ticketRef" placeholder="e.g. FIN-00123" required />
+            <input
+              type="text"
+              id="ticketRef"
+              name="ticketRef"
+              placeholder="e.g. FIN-00123"
+              required
+            />
           </div>
           <div>
             <label for="paymentMethod">E-Wallet Used *</label><br />
@@ -175,11 +265,24 @@
           </div>
           <div>
             <label for="paymentAmount">Amount Paid (PHP) *</label><br />
-            <input type="number" id="paymentAmount" name="paymentAmount" placeholder="e.g. 500" min="1" required />
+            <input
+              type="number"
+              id="paymentAmount"
+              name="paymentAmount"
+              placeholder="e.g. 500"
+              min="1"
+              required
+            />
           </div>
           <div>
             <label for="paymentScreenshot">Payment Screenshot *</label><br />
-            <input type="file" id="paymentScreenshot" name="paymentScreenshot" accept="image/*" required />
+            <input
+              type="file"
+              id="paymentScreenshot"
+              name="paymentScreenshot"
+              accept="image/*"
+              required
+            />
           </div>
           <div>
             <button type="submit">Submit Payment Proof</button>
@@ -194,7 +297,12 @@
 
       <div>
         <label for="trackInput">Ticket ID</label><br />
-        <input type="text" id="trackInput" name="trackInput" placeholder="Enter Ticket ID (e.g. FIN-00123)" />
+        <input
+          type="text"
+          id="trackInput"
+          name="trackInput"
+          placeholder="Enter Ticket ID (e.g. FIN-00123)"
+        />
         <button type="button">Check Status</button>
       </div>
     </section>
@@ -223,7 +331,10 @@
       <div>
         <div>
           <p><strong>FixItNow</strong></p>
-          <p>An online equipment repair request and service management system. Fast, reliable, and hassle-free repairs at your fingertips.</p>
+          <p>
+            An online equipment repair request and service management system.
+            Fast, reliable, and hassle-free repairs at your fingertips.
+          </p>
         </div>
 
         <div>
@@ -240,16 +351,24 @@
     </footer>
 
     <script>
-      const pages = ['home', 'services', 'how-it-works', 'request', 'payment', 'track', 'contact'];
+      const pages = [
+        "home",
+        "services",
+        "how-it-works",
+        "request",
+        "payment",
+        "track",
+        "contact",
+      ];
 
       function showPage(id) {
-        pages.forEach(function(page) {
+        pages.forEach(function (page) {
           var el = document.getElementById(page);
           if (el) {
             if (page === id) {
-              el.removeAttribute('hidden');
+              el.removeAttribute("hidden");
             } else {
-              el.setAttribute('hidden', '');
+              el.setAttribute("hidden", "");
             }
           }
         });
@@ -257,5 +376,6 @@
       }
     </script>
 
+    <script src="script.js"></script>
   </body>
 </html>
