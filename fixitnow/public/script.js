@@ -1,15 +1,14 @@
-const container = document.querySelector('.container');
-const registerBtn = document.querySelector('.register-Btn');
-const loginBtn = document.querySelector('.login-Btn');
+const container = document.querySelector(".container");
+const registerBtn = document.querySelector(".register-Btn");
+const loginBtn = document.querySelector(".login-Btn");
 
-registerBtn.addEventListener('click', () => {
-  container.classList.add('active');
+registerBtn.addEventListener("click", () => {
+  container.classList.add("active");
 });
 
-loginBtn.addEventListener('click', () => {
-  container.classList.remove('active');
+loginBtn.addEventListener("click", () => {
+  container.classList.remove("active");
 });
-
 
 const STORAGE_KEY = "fixitnow_tickets";
 
@@ -259,7 +258,6 @@ if (dateInput) {
 
 showPage(location.hash.slice(1));
 
-
 document.addEventListener("DOMContentLoaded", function () {
   const USERS_KEY = "fixitnow_users";
   const SESSION_KEY = "fixitnow_session";
@@ -302,7 +300,10 @@ document.addEventListener("DOMContentLoaded", function () {
       event.preventDefault();
 
       const name = document.getElementById("regName").value.trim();
-      const email = document.getElementById("regEmail").value.trim().toLowerCase();
+      const email = document
+        .getElementById("regEmail")
+        .value.trim()
+        .toLowerCase();
       const password = document.getElementById("regPassword").value;
 
       if (!name || !email || !password) {
@@ -317,7 +318,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const users = getUsers();
 
-      if (users.some(user => user.email === email)) {
+      if (users.some((user) => user.email === email)) {
         regMsg.textContent = "This email is already registered.";
         return;
       }
@@ -338,11 +339,14 @@ document.addEventListener("DOMContentLoaded", function () {
     loginForm.addEventListener("submit", function (event) {
       event.preventDefault();
 
-      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+      const email = document
+        .getElementById("loginEmail")
+        .value.trim()
+        .toLowerCase();
       const password = document.getElementById("loginPassword").value;
 
       const user = getUsers().find(
-        account => account.email === email && account.password === password
+        (account) => account.email === email && account.password === password,
       );
 
       if (!user) {
@@ -353,7 +357,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       localStorage.setItem(
         SESSION_KEY,
-        JSON.stringify({ name: user.name, email: user.email })
+        JSON.stringify({ name: user.name, email: user.email }),
       );
 
       loginMsg.style.color = "green";
