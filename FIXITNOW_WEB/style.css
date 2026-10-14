@@ -1,3 +1,23 @@
+[hidden] {
+  display: none !important;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  border-bottom: 1px solid #ccc;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
 Main Stylesheet {
   margin: 0;
   padding: 0;
@@ -418,4 +438,25 @@ footer hr {
   footer {
     padding: 35px 25px 20px;
   }
+}
+
+#request input:user-invalid,
+#request select:user-invalid,
+#request textarea:user-invalid {
+  border: 2px solid #d93025;
+  background-color: #fdecea;
+  outline: none;
+}
+
+#request input:user-invalid:focus,
+#request select:user-invalid:focus,
+#request textarea:user-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(217, 48, 37, 0.25);
+}
+
+input:user-invalid,
+select:user-invalid,
+textarea:user-invalid {
+  border: 2px solid #d93025;
+  background-color: #fdecea;
 }

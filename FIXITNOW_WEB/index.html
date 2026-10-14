@@ -10,35 +10,20 @@
   </head>
 
   <body>
+    <body>
 
-    <nav
-      style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 24px;
-        border-bottom: 1px solid #ccc;
-      "
-    >
-      <a href="#" onclick="showPage('home')">FixItNow</a>
-      <ul
-        style="
-          list-style: none;
-          display: flex;
-          gap: 12px;
-          margin: 0;
-          padding: 0;
-        "
-      >
-        <li><a href="#" onclick="showPage('home')">Home</a></li>
-        <li><a href="#" onclick="showPage('services')">Services</a></li>
-        <li><a href="#" onclick="showPage('how-it-works')">How It Works</a></li>
-        <li><a href="#" onclick="showPage('track')">Track Request</a></li>
-        <li><a href="#" onclick="showPage('payment')">Payment</a></li>
-        <li><a href="#" onclick="showPage('contact')">Contact</a></li>
-        <li><a href="#" onclick="showPage('request')">Request Repair</a></li>
-      </ul>
-    </nav>
+  <nav class="navbar">
+    <a href="#home" class="logo">FixItNow</a>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#track">Track Request</a></li>
+      <li><a href="#payment">Payment</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><a href="#request">Request Repair</a></li>
+    </ul>
+  </nav>
 
     <section id="home">
       <h1>Your Equipment Broken? We Fix It Now.</h1>
@@ -46,8 +31,8 @@
         Submit a repair request online, track its progress in real time, and get
         your equipment back fast and hassle-free.
       </p>
-      <a href="#" onclick="showPage('request')">Request a Repair</a>
-      <a href="#" onclick="showPage('track')">Track My Request</a>
+      <a href="#request">Request a Repair</a>
+      <a href="#track">Track My Request</a>
     </section>
 
     <section id="services" hidden>
@@ -152,24 +137,27 @@
         <div>
           <label for="contactNumber">Contact Number *</label><br />
           <input
-    type="tel"
-    id="contactNumber"
-    name="contact"
-    placeholder="e.g. 09171234567"
-    maxlength="11"
-    required
-/>
+            type="tel"
+            id="contactNumber"
+            name="contact"
+            placeholder="e.g. 09171234567"
+            inputmode="numeric"
+            pattern="09[0-9]{9}"
+            maxlength="11"
+            title="Enter an 11-digit mobile number starting with 09"
+            required
+          />
         </div>
-          <div>
-            <label for="email">Email Address *</label><br />
-            <input
-              type="email"
-              id="email"
-              name="email"
-              placeholder="e.g. juan@email.com"
-              required
-            />
-          </div>
+        <div>
+          <label for="email">Email Address *</label><br />
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="e.g. juan@email.com"
+            required
+          />
+        </div>
         <div>
           <label for="equipment">Equipment Type *</label><br />
           <select id="equipment" name="equipment" required>
@@ -302,6 +290,8 @@
           id="trackInput"
           name="trackInput"
           placeholder="Enter Ticket ID (e.g. FIN-00123)"
+          pattern="[Ff][Ii][Nn]-[0-9]{5}"
+          title="Format: FIN-12345"
         />
         <button type="button">Check Status</button>
       </div>
@@ -349,32 +339,6 @@
       <hr />
       <p>© 2026 FixItNow. All rights reserved.</p>
     </footer>
-
-    <script>
-      const pages = [
-        "home",
-        "services",
-        "how-it-works",
-        "request",
-        "payment",
-        "track",
-        "contact",
-      ];
-
-      function showPage(id) {
-        pages.forEach(function (page) {
-          var el = document.getElementById(page);
-          if (el) {
-            if (page === id) {
-              el.removeAttribute("hidden");
-            } else {
-              el.setAttribute("hidden", "");
-            }
-          }
-        });
-        window.scrollTo(0, 0);
-      }
-    </script>
 
     <script src="script.js"></script>
   </body>
