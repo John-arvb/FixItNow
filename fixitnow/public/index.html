@@ -10,20 +10,61 @@
   </head>
 
   <body>
-    <body>
 
-  <nav class="navbar">
-    <a href="#home" class="logo">FixItNow</a>
-    <ul class="nav-links">
-      <li><a href="#home">Home</a></li>
-      <li><a href="#services">Services</a></li>
-      <li><a href="#how-it-works">How It Works</a></li>
-      <li><a href="#track">Track Request</a></li>
-      <li><a href="#payment">Payment</a></li>
-      <li><a href="#contact">Contact</a></li>
-      <li><a href="#request">Request Repair</a></li>
-    </ul>
-  </nav>
+    <nav class="navbar">
+      <a href="#home" class="logo">FixItNow</a>
+      <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#track">Track Request</a></li>
+        <li><a href="#payment">Payment</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#request">Request Repair</a></li>
+        <li><a href="#login">Login</a></li>
+        <li hidden><a href="#" id="logoutLink">Logout</a></li>
+      </ul>
+    </nav>
+
+    <section id="login" hidden>
+      <div class="container">
+
+        <div class="form-box login">
+          <form id="loginForm">
+            <h1>Login</h1>
+            <input type="email" id="loginEmail" placeholder="Email" required />
+            <input type="password" id="loginPassword" placeholder="Password" required />
+            <button type="submit">Login</button>
+            <p class="form-msg" id="loginMsg"></p>
+          </form>
+        </div>
+
+        <div class="form-box register">
+          <form id="registerForm">
+            <h1>Register</h1>
+            <input type="text" id="regName" placeholder="Full name" required />
+            <input type="email" id="regEmail" placeholder="Email" required />
+            <input type="password" id="regPassword" placeholder="Password (min 6 chars)" minlength="6" required />
+            <button type="submit">Register</button>
+            <p class="form-msg" id="regMsg"></p>
+          </form>
+        </div>
+
+        <div class="toggle-box">
+          <div class="toggle-panel toggle-left">
+            <h1>Hello, Welcome!</h1>
+            <p>Don't have an account?</p>
+            <button type="button" class="register-Btn">Register</button>
+          </div>
+          <div class="toggle-panel toggle-right">
+            <h1>Welcome Back!</h1>
+            <p>Already have an account?</p>
+            <button type="button" class="login-Btn">Login</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
 
     <section id="home">
       <h1>Your Equipment Broken? We Fix It Now.</h1>
@@ -123,7 +164,7 @@
         possible.
       </p>
 
-      <form>
+      <form id="requestForm">
         <div>
           <label for="fullname">Full Name *</label><br />
           <input
@@ -187,6 +228,7 @@
           <button type="submit">Submit Repair Request</button>
         </div>
       </form>
+      <p id="requestMsg"></p>
     </section>
 
     <section id="payment" hidden>
@@ -220,17 +262,14 @@
           <li>Wait for a repair quote from our technician.</li>
           <li>Send the exact amount to your preferred e-wallet above.</li>
           <li>Take a screenshot of your payment confirmation.</li>
-          <li>
-            Send the screenshot to support@fixitnow.ph or via our contact
-            number.
-          </li>
+          <li>Upload the screenshot using the form below.</li>
           <li>Include your Ticket ID as the payment reference.</li>
         </ol>
       </div>
 
       <div>
         <h3>Upload Payment Proof</h3>
-        <form>
+        <form id="paymentForm">
           <div>
             <label for="ticketRef">Ticket ID *</label><br />
             <input
@@ -276,6 +315,7 @@
             <button type="submit">Submit Payment Proof</button>
           </div>
         </form>
+        <p id="paymentMsg"></p>
       </div>
     </section>
 
@@ -293,8 +333,9 @@
           pattern="[Ff][Ii][Nn]-[0-9]{5}"
           title="Format: FIN-12345"
         />
-        <button type="button">Check Status</button>
+        <button type="button" id="trackBtn">Check Status</button>
       </div>
+      <div id="trackResult"></div>
     </section>
 
     <section id="contact" hidden>
@@ -341,5 +382,6 @@
     </footer>
 
     <script src="script.js"></script>
+    <script src="app.js"></script>
   </body>
 </html>
