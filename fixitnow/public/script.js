@@ -42,6 +42,7 @@ function generateTicketId() {
 }
 
 const pages = [
+  "login",
   "home",
   "services",
   "how-it-works",
@@ -257,3 +258,132 @@ if (dateInput) {
 }
 
 showPage(location.hash.slice(1));
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const USERS_KEY = "fixitnow_users";
+  const SESSION_KEY = "fixitnow_session";
+
+  const loginForm = document.getElementById("loginForm");
+  const registerForm = document.getElementById("registerForm");
+
+  const loginMsg = document.getElementById("loginMsg");
+  const regMsg = document.getElementById("regMsg");
+
+  const container = document.querySelector(".container");
+  const registerBtn = document.querySelector(".register-Btn");
+  const loginBtn = document.querySelector(".login-Btn");
+
+  const loginLink = document.querySelector('a[href="#login"]');
+  const logoutLink = document.getElementById("logoutLink");
+
+  function getUsers() {
+    try {
+      return JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  // Sliding Login/Register panel
+  if (container && registerBtn && loginBtn) {
+    registerBtn.addEventListener("click", function () {
+      container.classList.add("active");
+    });
+
+    loginBtn.addEventListener("click", function () {
+      container.classList.remove("active");
+    });
+  }
+
+  // Register
+  if (registerForm) {
+    registerForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const name = document.getElementById("regName").value.trim();
+      const email = document.getElementById("regEmail").value.trim().toLowerCase();
+      const password = document.getElementById("regPassword").value;
+
+      if (!name || !email || !password) {
+        regMsg.textContent = "Please fill in all fields.";
+        return;
+      }
+
+      if (password.length < 6) {
+        regMsg.textContent = "Password must be at least 6 characters.";
+        return;
+      }
+
+      const users = getUsers();
+
+      if (users.some(user => user.email === email)) {
+        regMsg.textContent = "This email is already registered.";
+        return;
+      }
+
+      users.push({ name, email, password });
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+      regMsg.style.color = "green";
+      regMsg.textContent = "Registration successful! You can now log in.";
+
+      registerForm.reset();
+      if (container) container.classList.remove("active");
+    });
+  }
+
+  // Login
+  if (loginForm) {
+    loginForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+      const password = document.getElementById("loginPassword").value;
+
+      const user = getUsers().find(
+        account => account.email === email && account.password === password
+      );
+
+      if (!user) {
+        loginMsg.style.color = "red";
+        loginMsg.textContent = "Incorrect email or password.";
+        return;
+      }
+
+      localStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({ name: user.name, email: user.email })
+      );
+
+      loginMsg.style.color = "green";
+      loginMsg.textContent = "Login successful!";
+
+      loginForm.reset();
+      updateAuthLinks();
+
+      location.hash = "#home";
+    });
+  }
+
+  // Navbar Login/Logout links
+  function updateAuthLinks() {
+    const loggedIn = Boolean(localStorage.getItem(SESSION_KEY));
+    const loginItem = loginLink ? loginLink.closest("li") : null;
+    const logoutItem = logoutLink ? logoutLink.closest("li") : null;
+
+    if (loginItem) loginItem.hidden = loggedIn;
+    if (logoutItem) logoutItem.hidden = !loggedIn;
+  }
+
+  if (logoutLink) {
+    logoutLink.addEventListener("click", function (event) {
+      event.preventDefault();
+      localStorage.removeItem(SESSION_KEY);
+      updateAuthLinks();
+      location.hash = "#home";
+    });
+  }
+
+  updateAuthLinks();
+});
