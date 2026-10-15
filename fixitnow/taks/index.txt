@@ -1,0 +1,41 @@
+Task For Html:
+
+Create main website structure with:
+1.Navigation Bar
+    -FitItNow logo o name
+    -Home
+    -Servies
+    -Pano mag work an website
+    -Track Request
+    -Contact
+2.Home
+    -Website title
+    -short nga description
+    -"Requesta Repair" na button
+    -"Track My Request" na button
+3.Services Section
+    -Computer Repair
+    -Phone Repair
+    -Laptop Repair
+    -Other Equpiments
+4.How it works
+    -Submit Request
+     ↓
+    -Request Reviewed
+     ↓
+    -Equpiment Repaired
+     ↓
+    -Status Updated
+     ↓
+    Completed
+5.Repair Request Form
+    -Name
+    -Contact number/email(pag himo himo nala)
+    -Equpiment type
+    -Problem/description
+    -Preffered date
+    -Submi Button
+6.Footer
+    -FitNow
+    -Contact information
+    -Copyright
