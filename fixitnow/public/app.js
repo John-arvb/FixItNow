@@ -1,6 +1,7 @@
 let currentUser = null;
 const protectedSections = ["request", "payment", "track"];
 
+/* ---------- API helpers ---------- */
 async function api(path, options = {}) {
   const res = await fetch("/api" + path, {
     credentials: "same-origin",
@@ -26,6 +27,7 @@ const setMsg = (id, text, ok = false) => {
   el.style.color = ok ? "#15803d" : "#c0392b";
 };
 
+/* ---------- Page switching ---------- */
 function showSection(id) {
   if (!document.getElementById(id)) id = "home";
   if (protectedSections.includes(id) && !currentUser) id = "login"; // must log in first
@@ -42,6 +44,7 @@ function updateNav() {
   if (login) login.parentElement.hidden = Boolean(currentUser);
 }
 
+/* ---------- Register ---------- */
 $("registerForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
@@ -52,14 +55,14 @@ $("registerForm").addEventListener("submit", async (e) => {
     });
     e.target.reset();
     setMsg("regMsg", "");
-    document.querySelector(".container").classList.remove("active");
-
+    document.querySelector(".container").classList.remove("active"); // slide back to login
     setMsg("loginMsg", "Account created. Please log in.", true);
   } catch (err) {
     setMsg("regMsg", err.message);
   }
 });
 
+/* ---------- Login / Logout ---------- */
 $("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
@@ -72,7 +75,7 @@ $("loginForm").addEventListener("submit", async (e) => {
     setMsg("loginMsg", "");
     updateNav();
     location.hash = "#request";
-    route();
+    route(); // in case the hash didn't change
   } catch (err) {
     setMsg("loginMsg", err.message);
   }
@@ -87,6 +90,7 @@ $("logoutLink").addEventListener("click", async (e) => {
   route();
 });
 
+/* ---------- Submit repair request ---------- */
 $("requestForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
@@ -106,11 +110,12 @@ $("requestForm").addEventListener("submit", async (e) => {
   }
 });
 
+/* ---------- Submit payment proof ---------- */
 $("paymentForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
   try {
-    
+    // FormData carries the file. Don't set Content-Type yourself.
     await api("/payments", { method: "POST", body: new FormData(form) });
     form.reset();
     setMsg(
@@ -123,7 +128,7 @@ $("paymentForm").addEventListener("submit", async (e) => {
   }
 });
 
-
+/* ---------- Track a request ---------- */
 $("trackBtn").addEventListener("click", async () => {
   const ticket = $("trackInput").value.trim().toUpperCase();
   const box = $("trackResult");
@@ -139,6 +144,19 @@ $("trackBtn").addEventListener("click", async () => {
     const info = document.createElement("p");
     info.textContent = `${request.equipment}, service date ${request.serviceDate}`;
 
+    const pay = document.createElement("p");
+    const amt = request.payment.amount
+      ? ` (PHP ${request.payment.amount})`
+      : "";
+    pay.textContent = `Payment: ${request.payment.label}${amt}`;
+    pay.style.fontWeight = "bold";
+    pay.style.color = {
+      Paid: "#15803d",
+      Pending: "#b45309",
+      Rejected: "#c0392b",
+      Unpaid: "#555",
+    }[request.payment.state];
+
     const list = document.createElement("ol");
     const current = steps.indexOf(request.status);
     steps.forEach((s, i) => {
@@ -147,8 +165,7 @@ $("trackBtn").addEventListener("click", async () => {
         s + (i < current ? " ✓" : i === current ? " ← current" : "");
       list.append(li);
     });
-    box.append(title, info, list);
-
+    box.append(title, info, pay, list); // textContent everywhere, so no HTML injection
   } catch (err) {
     const p = document.createElement("p");
     p.style.color = "#c0392b";
@@ -157,14 +174,13 @@ $("trackBtn").addEventListener("click", async () => {
   }
 });
 
-
+/* ---------- Start ---------- */
 (async function init() {
   const dateInput = $("date");
   if (dateInput) dateInput.min = new Date().toISOString().slice(0, 10); // no past dates
 
   try {
-    currentUser = (await api("/me")).user; 
-
+    currentUser = (await api("/me")).user; // is there a valid login cookie?
   } catch {
     currentUser = null;
   }
