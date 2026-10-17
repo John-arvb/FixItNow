@@ -13,6 +13,9 @@ const { DatabaseSync } = require('node:sqlite');   // built into Node 22.13+, no
 const { JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, NODE_ENV } = process.env;
 const PORT = process.env.PORT || 3000;
 
+const COST = 12;   // how slow/strong password hashing is (higher = stronger, slower)
+const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', COST);   // used so login takes equal time for unknown emails
+
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
   console.error('Set JWT_SECRET (32+ characters) in your .env file.');
   process.exit(1);
@@ -57,7 +60,7 @@ if (ADMIN_EMAIL && ADMIN_PASSWORD) {
   const email = ADMIN_EMAIL.toLowerCase();
   if (!db.prepare('SELECT 1 FROM users WHERE email = ?').get(email)) {
     db.prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)')
-      .run('Admin', email, bcrypt.hashSync(ADMIN_PASSWORD, 10), 'admin');
+      .run('Admin', email, bcrypt.hashSync(ADMIN_PASSWORD, COST), 'admin');
     console.log('Admin account created:', email);
   }
 }
@@ -136,10 +139,10 @@ app.post('/api/register', authLimiter, async (req, res) => {
 
   if (!name || name.length > 100) return bad(res, 'Enter your full name.');
   if (!/^\S+@\S+\.\S+$/.test(email)) return bad(res, 'Enter a valid email.');
-  if (password.length < 6 || password.length > 72) return bad(res, 'Password must be 6 to 72 characters.');
+  if (password.length < 8 || password.length > 72) return bad(res, 'Password must be 8 to 72 characters.');
 
   try {
-    const hash = await bcrypt.hash(password, 10);
+    const hash = await bcrypt.hash(password, COST);
     db.prepare('INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)').run(name, email, hash);
     res.status(201).json({ ok: true });
   } catch (e) {
@@ -154,9 +157,18 @@ app.post('/api/login', authLimiter, async (req, res) => {
   const password = String(req.body.password || '');
   const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
 
-  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+  // Always run a comparison (even for unknown emails) so response time doesn't reveal which emails exist
+  const ok = await bcrypt.compare(password, user ? user.password_hash : DUMMY_HASH);
+  if (!user || !ok) {
     return bad(res, 'Wrong email or password.', 401);
   }
+
+  // Upgrade older, weaker hashes to the current cost the first time the user logs in
+  if (bcrypt.getRounds(user.password_hash) < COST) {
+    const newHash = await bcrypt.hash(password, COST);
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id);
+  }
+
   signIn(res, user);
   res.json({ user: { name: user.name, email: user.email, role: user.role } });
 });
@@ -221,7 +233,7 @@ app.get('/api/requests/:ticket', auth, (req, res) => {
 
 /* ---------------- Payments ---------------- */
 app.post('/api/payments', auth, upload.single('paymentScreenshot'), (req, res) => {
-  const discard = () => req.file && fs.unlink(req.file.path, () => {});
+  const discard = () => req.file && fs.unlink(req.file.path, () => { });
 
   const id = idOf(req.body.ticketRef);
   const method = String(req.body.paymentMethod || '');
