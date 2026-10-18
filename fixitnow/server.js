@@ -52,6 +52,18 @@ db.exec(`
   );
 `);
 
+// Older databases: add the payment status column if it's missing
+if (
+  !db
+    .prepare("PRAGMA table_info(payments)")
+    .all()
+    .some((c) => c.name === "status")
+) {
+  db.exec(
+    "ALTER TABLE payments ADD COLUMN status TEXT NOT NULL DEFAULT 'Pending'",
+  );
+}
+
 // Create the first admin account if it doesn't exist yet
 if (ADMIN_EMAIL && ADMIN_PASSWORD) {
   const email = ADMIN_EMAIL.toLowerCase();
@@ -89,6 +101,32 @@ const publicRequest = (r) => ({
   createdAt: r.created_at,
 });
 
+// Works out a ticket's payment state from its uploaded proofs
+function paymentOf(requestId) {
+  const rows = db
+    .prepare(
+      "SELECT status, amount FROM payments WHERE request_id = ? ORDER BY id DESC",
+    )
+    .all(requestId);
+  if (!rows.length) return { state: "Unpaid", label: "Unpaid", amount: 0 };
+  const paid = rows
+    .filter((r) => r.status === "Verified")
+    .reduce((sum, r) => sum + r.amount, 0);
+  if (paid > 0) return { state: "Paid", label: "Paid", amount: paid };
+  if (rows.some((r) => r.status === "Pending")) {
+    return {
+      state: "Pending",
+      label: "Payment submitted, awaiting verification",
+      amount: rows[0].amount,
+    };
+  }
+  return {
+    state: "Rejected",
+    label: "Payment rejected, please resubmit",
+    amount: 0,
+  };
+}
+
 function signIn(res, user) {
   const token = jwt.sign(
     { id: user.id, name: user.name, role: user.role },
@@ -119,6 +157,7 @@ const app = express();
 app.use(express.json({ limit: "50kb" }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
 app.get('/favicon.ico', (req, res) =>
   res.sendFile(path.join(__dirname, 'public', 'images', 'FIXITNOW.png'))
 );
@@ -247,7 +286,16 @@ app.get("/api/requests/mine", auth, (req, res) => {
   const rows = db
     .prepare("SELECT * FROM requests WHERE user_id = ? ORDER BY id DESC")
     .all(req.user.id);
+<<<<<<< HEAD
   res.json({ requests: rows.map(publicRequest) });
+=======
+  res.json({
+    requests: rows.map((r) => ({
+      ...publicRequest(r),
+      payment: paymentOf(r.id),
+    })),
+  });
+>>>>>>> c99ba7a760bd51aca054ba33ef960f286fb7d7a9
 });
 
 app.get("/api/requests/:ticket", auth, (req, res) => {
@@ -259,7 +307,10 @@ app.get("/api/requests/:ticket", auth, (req, res) => {
   if (!row || (row.user_id !== req.user.id && req.user.role !== "admin")) {
     return bad(res, "Ticket not found.", 404);
   }
-  res.json({ request: publicRequest(row), steps: STATUSES });
+  res.json({
+    request: { ...publicRequest(row), payment: paymentOf(row.id) },
+    steps: STATUSES,
+  });
 });
 
 /* ---------------- Payments ---------------- */
@@ -319,6 +370,10 @@ app.get("/api/admin/requests", auth, adminOnly, (req, res) => {
       contact: r.contact,
       email: r.email,
       payments: r.payment_count,
+<<<<<<< HEAD
+=======
+      payment: paymentOf(r.id),
+>>>>>>> c99ba7a760bd51aca054ba33ef960f286fb7d7a9
     })),
   });
 });
@@ -342,13 +397,31 @@ app.get("/api/admin/payments/:ticket", auth, adminOnly, (req, res) => {
   const rows = id
     ? db
         .prepare(
+<<<<<<< HEAD
           "SELECT id, method, amount, created_at FROM payments WHERE request_id = ?",
+=======
+          "SELECT id, method, amount, status, created_at FROM payments WHERE request_id = ?",
+>>>>>>> c99ba7a760bd51aca054ba33ef960f286fb7d7a9
         )
         .all(id)
     : [];
   res.json({ payments: rows });
 });
 
+<<<<<<< HEAD
+=======
+app.patch("/api/admin/payments/:id", auth, adminOnly, (req, res) => {
+  const status = String(req.body.status || "");
+  if (!["Pending", "Verified", "Rejected"].includes(status))
+    return bad(res, "Status must be Pending, Verified or Rejected.");
+  const info = db
+    .prepare("UPDATE payments SET status = ? WHERE id = ?")
+    .run(status, Number(req.params.id));
+  if (!info.changes) return bad(res, "Payment not found.", 404);
+  res.json({ ok: true, status });
+});
+
+>>>>>>> c99ba7a760bd51aca054ba33ef960f286fb7d7a9
 app.get("/api/admin/payments/file/:id", auth, adminOnly, (req, res) => {
   const row = db
     .prepare("SELECT screenshot FROM payments WHERE id = ?")
