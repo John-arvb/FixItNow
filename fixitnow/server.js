@@ -286,16 +286,15 @@ app.get("/api/requests/mine", auth, (req, res) => {
   const rows = db
     .prepare("SELECT * FROM requests WHERE user_id = ? ORDER BY id DESC")
     .all(req.user.id);
-<<<<<<< HEAD
+AD
   res.json({ requests: rows.map(publicRequest) });
-=======
+
   res.json({
     requests: rows.map((r) => ({
       ...publicRequest(r),
       payment: paymentOf(r.id),
     })),
   });
->>>>>>> c99ba7a760bd51aca054ba33ef960f286fb7d7a9
 });
 
 app.get("/api/requests/:ticket", auth, (req, res) => {
@@ -370,10 +369,9 @@ app.get("/api/admin/requests", auth, adminOnly, (req, res) => {
       contact: r.contact,
       email: r.email,
       payments: r.payment_count,
-<<<<<<< HEAD
-=======
+
+
       payment: paymentOf(r.id),
->>>>>>> c99ba7a760bd51aca054ba33ef960f286fb7d7a9
     })),
   });
 });
@@ -397,19 +395,16 @@ app.get("/api/admin/payments/:ticket", auth, adminOnly, (req, res) => {
   const rows = id
     ? db
         .prepare(
-<<<<<<< HEAD
           "SELECT id, method, amount, created_at FROM payments WHERE request_id = ?",
-=======
+
           "SELECT id, method, amount, status, created_at FROM payments WHERE request_id = ?",
->>>>>>> c99ba7a760bd51aca054ba33ef960f286fb7d7a9
         )
         .all(id)
     : [];
   res.json({ payments: rows });
 });
 
-<<<<<<< HEAD
-=======
+
 app.patch("/api/admin/payments/:id", auth, adminOnly, (req, res) => {
   const status = String(req.body.status || "");
   if (!["Pending", "Verified", "Rejected"].includes(status))
@@ -421,7 +416,7 @@ app.patch("/api/admin/payments/:id", auth, adminOnly, (req, res) => {
   res.json({ ok: true, status });
 });
 
->>>>>>> c99ba7a760bd51aca054ba33ef960f286fb7d7a9
+
 app.get("/api/admin/payments/file/:id", auth, adminOnly, (req, res) => {
   const row = db
     .prepare("SELECT screenshot FROM payments WHERE id = ?")
