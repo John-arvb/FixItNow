@@ -416,7 +416,6 @@ app.patch("/api/admin/payments/:id", auth, adminOnly, (req, res) => {
   res.json({ ok: true, status });
 });
 
-
 app.get("/api/admin/payments/file/:id", auth, adminOnly, (req, res) => {
   const row = db
     .prepare("SELECT screenshot FROM payments WHERE id = ?")
