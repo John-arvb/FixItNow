@@ -1,3 +1,4 @@
+//made to see the hashes if it really worked.
 const { DatabaseSync } = require('node:sqlite');
 
 const db = new DatabaseSync('fixitnow.db');

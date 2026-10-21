@@ -248,6 +248,31 @@ function adminRow(r) {
   const statusTd = document.createElement("td");
   statusTd.append(sel);
 
+  // Delete button (under the status dropdown)
+  const del = document.createElement("button");
+  del.type = "button";
+  del.textContent = "Delete";
+  del.style.display = "block";
+  del.style.marginTop = "6px";
+  del.style.color = "#c0392b";
+  del.addEventListener("click", async () => {
+    const ok = confirm(
+      `Delete ${r.ticket}? This also deletes its payment proofs and cannot be undone.`,
+    );
+    if (!ok) return;
+    del.disabled = true;
+    try {
+      await api("/admin/requests/" + r.ticket, { method: "DELETE" });
+      $("adminPayments").replaceChildren(); // close any open proofs panel
+      await loadAdmin();
+      setMsg("adminMsg", `${r.ticket} was deleted.`, true);
+    } catch (err) {
+      del.disabled = false;
+      setMsg("adminMsg", err.message);
+    }
+  });
+  statusTd.append(del);
+
   // Payment cell: current state + button to review proofs
   const payTd = document.createElement("td");
   payTd.className = "pay-" + r.payment.state;

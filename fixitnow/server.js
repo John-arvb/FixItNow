@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const multer = require("multer");
-const { DatabaseSync } = require("node:sqlite"); 
+const { DatabaseSync } = require("node:sqlite");
 
 //line 15 to 16, an nag babasa san JWT_SECRET NGAN ADMIN_EMAIL ngan an iba nga settings sa .env.
 const { JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, NODE_ENV } = process.env;
@@ -286,7 +286,7 @@ app.get("/api/me", (req, res) => {
 });
 
 //line 289 to 359, kun diin nag rerequest repaire an mga user.
-  app.post("/api/requests", auth, (req, res) => {
+app.post("/api/requests", auth, (req, res) => {
   const b = req.body;
   const fullName = String(b.fullname || "").trim();
   const contact = String(b.contact || "").trim();
@@ -426,6 +426,36 @@ app.patch("/api/admin/requests/:ticket", auth, adminOnly, (req, res) => {
     .run(status, id);
   if (!info.changes) return bad(res, "Ticket not found.", 404);
   res.json({ ok: true, status });
+});
+
+// delete a request, its payment records, and the encrypted screenshot files
+app.delete("/api/admin/requests/:ticket", auth, adminOnly, (req, res) => {
+  const id = idOf(req.params.ticket);
+  if (!id) return bad(res, "Invalid ticket.");
+
+  const proofs = db
+    .prepare("SELECT screenshot FROM payments WHERE request_id = ?")
+    .all(id);
+
+  try {
+    db.exec("BEGIN");
+    db.prepare("DELETE FROM payments WHERE request_id = ?").run(id);
+    const info = db.prepare("DELETE FROM requests WHERE id = ?").run(id);
+    if (!info.changes) {
+      db.exec("ROLLBACK");
+      return bad(res, "Ticket not found.", 404);
+    }
+    db.exec("COMMIT");
+  } catch (e) {
+    db.exec("ROLLBACK");
+    console.error(e);
+    return bad(res, "Could not delete the request.", 500);
+  }
+
+  proofs.forEach((p) =>
+    fs.unlink(path.join(uploadDir, p.screenshot), () => {}),
+  );
+  res.json({ ok: true });
 });
 
 app.get("/api/admin/payments/:ticket", auth, adminOnly, (req, res) => {
