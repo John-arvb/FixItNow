@@ -1,10 +1,3 @@
-/* =========================================================
-   FixItNow front-end. Talks to the backend through /api.
-   Replaces the old localStorage login code.
-   Keep your Login/Register toggle code (container, registerBtn,
-   loginBtn) in script.js. This file doesn't redefine it.
-   ========================================================= */
-
 let currentUser = null;
 const protectedSections = ["request", "payment", "track", "admin"];
 

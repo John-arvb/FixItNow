@@ -1,3 +1,4 @@
+//line 2 to 12, an nag loload san tools nga need san server.
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
@@ -8,17 +9,54 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const multer = require("multer");
-const { DatabaseSync } = require("node:sqlite"); // built into Node 22.13+, nothing to compile
+const { DatabaseSync } = require("node:sqlite"); 
 
+//line 15 to 16, an nag babasa san JWT_SECRET NGAN ADMIN_EMAIL ngan an iba nga settings sa .env.
 const { JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, NODE_ENV } = process.env;
 const PORT = process.env.PORT || 3000;
 
+//line 19 to 22, an nag kikita san JWT_SECRET kun wara sulod or shorter sa 32 character, ngan nag e-stop sa aton mag run with a weak secret.
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
   console.error("Set JWT_SECRET (32+ characters) in your .env file.");
   process.exit(1);
 }
 
-/* ---------------- Database ---------------- */
+//line 25 to 57, amon encryption code. Nag loload san ENC_KEY, ngan an encrypt/dycrptBuffers an nag papagana san AES-256-GCM, ngan an encrpyt/decrypt an nag wwrap saira to text. Encrypted text starts with enc, so an old plain still display.
+if (!process.env.ENC_KEY || process.env.ENC_KEY.length !== 64) {
+  console.error("Set ENC_KEY (64 hex characters) in your .env file.");
+  process.exit(1);
+}
+const ENC_KEY = Buffer.from(process.env.ENC_KEY, "hex");
+
+function encryptBuffer(buf) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", ENC_KEY, iv);
+  const enc = Buffer.concat([cipher.update(buf), cipher.final()]);
+  return Buffer.concat([iv, cipher.getAuthTag(), enc]); // iv(12) + tag(16) + data
+}
+
+function decryptBuffer(buf) {
+  const iv = buf.subarray(0, 12);
+  const tag = buf.subarray(12, 28);
+  const data = buf.subarray(28);
+  const decipher = crypto.createDecipheriv("aes-256-gcm", ENC_KEY, iv);
+  decipher.setAuthTag(tag);
+  return Buffer.concat([decipher.update(data), decipher.final()]);
+}
+
+const encrypt = (text) =>
+  "enc:" + encryptBuffer(Buffer.from(text, "utf8")).toString("base64");
+
+const decrypt = (text) => {
+  if (!String(text).startsWith("enc:")) return text; // old, unencrypted rows still work
+  try {
+    return decryptBuffer(Buffer.from(text.slice(4), "base64")).toString("utf8");
+  } catch {
+    return "[unreadable]";
+  }
+};
+
+//line 60 to 103, amon database code. didi nag gegenarate san fixitnow.db
 const db = new DatabaseSync(path.join(__dirname, "fixitnow.db"));
 db.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
 db.exec(`
@@ -64,7 +102,7 @@ if (
   );
 }
 
-// Create the first admin account if it doesn't exist yet
+// line 105 to 114, an nag hihimo san admin account, kun wara pa admin acc.
 if (ADMIN_EMAIL && ADMIN_PASSWORD) {
   const email = ADMIN_EMAIL.toLowerCase();
   if (!db.prepare("SELECT 1 FROM users WHERE email = ?").get(email)) {
@@ -75,7 +113,7 @@ if (ADMIN_EMAIL && ADMIN_PASSWORD) {
   }
 }
 
-/* ---------------- Helpers ---------------- */
+//line 117 to 140, amon helper code.
 const EQUIPMENT = ["computer", "laptop", "phone", "tablet", "printer", "other"];
 const WALLETS = ["gcash", "maya", "shopeepay", "other"];
 const STATUSES = [
@@ -96,7 +134,7 @@ const publicRequest = (r) => ({
   ticket: ticketOf(r.id),
   equipment: r.equipment,
   serviceDate: r.service_date,
-  problem: r.problem,
+  problem: decrypt(r.problem),
   status: r.status,
   createdAt: r.created_at,
 });
@@ -127,6 +165,12 @@ function paymentOf(requestId) {
   };
 }
 
+const cookieOptions = {
+  httpOnly: true, // JavaScript in the page can't read it
+  sameSite: "lax", // blocks cross-site POSTs
+  secure: NODE_ENV === "production", // HTTPS only in production
+};
+
 function signIn(res, user) {
   const token = jwt.sign(
     { id: user.id, name: user.name, role: user.role },
@@ -134,16 +178,16 @@ function signIn(res, user) {
     { expiresIn: "7d" },
   );
   res.cookie("token", token, {
-    httpOnly: true, // JavaScript in the page can't read it
-    sameSite: "lax", // blocks cross-site POSTs
-    secure: NODE_ENV === "production", // HTTPS only in production
+    ...cookieOptions,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
 
 function auth(req, res, next) {
   try {
-    req.user = jwt.verify(req.cookies.token, JWT_SECRET);
+    req.user = jwt.verify(req.cookies.token, JWT_SECRET, {
+      algorithms: ["HS256"],
+    });
     next();
   } catch {
     bad(res, "Please log in first.", 401);
@@ -158,8 +202,8 @@ app.use(express.json({ limit: "50kb" }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get('/favicon.ico', (req, res) =>
-  res.sendFile(path.join(__dirname, 'public', 'images', 'FIXITNOW.png'))
+app.get("/favicon.ico", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "images", "FIXITNOW.png")),
 );
 
 const uploadDir = path.join(__dirname, "uploads"); // NOT served publicly
@@ -171,12 +215,9 @@ const EXT = {
   "image/webp": ".webp",
   "image/gif": ".gif",
 };
+// Files are kept in memory, encrypted, then written to disk as .enc
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: uploadDir,
-    filename: (req, file, cb) =>
-      cb(null, crypto.randomBytes(16).toString("hex") + EXT[file.mimetype]),
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024, files: 1 },
   fileFilter: (req, file, cb) => cb(null, Boolean(EXT[file.mimetype])),
 });
@@ -187,7 +228,7 @@ const authLimiter = rateLimit({
   message: { error: "Too many attempts. Try again in 15 minutes." },
 });
 
-/* ---------------- Auth routes ---------------- */
+//line 232 to 286, amon app setup code.
 app.post("/api/register", authLimiter, async (req, res) => {
   const name = String(req.body.name || "").trim();
   const email = String(req.body.email || "")
@@ -229,21 +270,23 @@ app.post("/api/login", authLimiter, async (req, res) => {
 });
 
 app.post("/api/logout", (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token", cookieOptions);
   res.json({ ok: true });
 });
 
 app.get("/api/me", (req, res) => {
   try {
-    const u = jwt.verify(req.cookies.token, JWT_SECRET);
+    const u = jwt.verify(req.cookies.token, JWT_SECRET, {
+      algorithms: ["HS256"],
+    });
     res.json({ user: { name: u.name, role: u.role } });
   } catch {
     res.json({ user: null });
   }
 });
 
-/* ---------------- Repair requests ---------------- */
-app.post("/api/requests", auth, (req, res) => {
+//line 289 to 359, kun diin nag rerequest repaire an mga user.
+  app.post("/api/requests", auth, (req, res) => {
   const b = req.body;
   const fullName = String(b.fullname || "").trim();
   const contact = String(b.contact || "").trim();
@@ -272,12 +315,18 @@ app.post("/api/requests", auth, (req, res) => {
 
   const info = db
     .prepare(
-      `
-    INSERT INTO requests (user_id, full_name, contact, email, equipment, service_date, problem)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `,
+      `INSERT INTO requests (user_id, full_name, contact, email, equipment, service_date, problem)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
-    .run(req.user.id, fullName, contact, email, equipment, date, problem);
+    .run(
+      req.user.id,
+      encrypt(fullName),
+      encrypt(contact),
+      encrypt(email),
+      equipment,
+      date,
+      encrypt(problem),
+    );
 
   res.status(201).json({ ticket: ticketOf(info.lastInsertRowid) });
 });
@@ -286,9 +335,6 @@ app.get("/api/requests/mine", auth, (req, res) => {
   const rows = db
     .prepare("SELECT * FROM requests WHERE user_id = ? ORDER BY id DESC")
     .all(req.user.id);
-AD
-  res.json({ requests: rows.map(publicRequest) });
-
   res.json({
     requests: rows.map((r) => ({
       ...publicRequest(r),
@@ -312,65 +358,57 @@ app.get("/api/requests/:ticket", auth, (req, res) => {
   });
 });
 
-/* ---------------- Payments ---------------- */
+//line 362 to 395, kun diin an payment san mga user.
 app.post(
   "/api/payments",
   auth,
   upload.single("paymentScreenshot"),
   (req, res) => {
-    const discard = () => req.file && fs.unlink(req.file.path, () => {});
-
     const id = idOf(req.body.ticketRef);
     const method = String(req.body.paymentMethod || "");
     const amount = Number(req.body.paymentAmount);
 
     if (!req.file)
       return bad(res, "Upload an image (JPG, PNG, WEBP or GIF, max 5 MB).");
-    if (!id) {
-      discard();
-      return bad(res, "Ticket format should look like FIN-00123.");
-    }
-    if (!WALLETS.includes(method)) {
-      discard();
-      return bad(res, "Choose an e-wallet.");
-    }
-    if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000) {
-      discard();
+    if (!id) return bad(res, "Ticket format should look like FIN-00123.");
+    if (!WALLETS.includes(method)) return bad(res, "Choose an e-wallet.");
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000)
       return bad(res, "Enter a valid amount.");
-    }
 
     const row = db.prepare("SELECT * FROM requests WHERE id = ?").get(id);
-    if (!row || row.user_id !== req.user.id) {
-      discard();
+    if (!row || row.user_id !== req.user.id)
       return bad(res, "Ticket not found.", 404);
-    }
+
+    // Encrypt the screenshot, then save it as a .enc file
+    const filename =
+      crypto.randomBytes(16).toString("hex") + EXT[req.file.mimetype] + ".enc";
+    fs.writeFileSync(
+      path.join(uploadDir, filename),
+      encryptBuffer(req.file.buffer),
+    );
 
     db.prepare(
       "INSERT INTO payments (request_id, method, amount, screenshot) VALUES (?, ?, ?, ?)",
-    ).run(id, method, amount, req.file.filename);
+    ).run(id, method, amount, filename);
     res.status(201).json({ ok: true });
   },
 );
 
-/* ---------------- Admin ---------------- */
+//line 398 to 469, admin management.
 app.get("/api/admin/requests", auth, adminOnly, (req, res) => {
   const rows = db
     .prepare(
-      `
-    SELECT r.*, (SELECT COUNT(*) FROM payments p WHERE p.request_id = r.id) AS payment_count
-    FROM requests r ORDER BY r.id DESC
-  `,
+      `SELECT r.*, (SELECT COUNT(*) FROM payments p WHERE p.request_id = r.id) AS payment_count
+       FROM requests r ORDER BY r.id DESC`,
     )
     .all();
   res.json({
     requests: rows.map((r) => ({
       ...publicRequest(r),
-      fullName: r.full_name,
-      contact: r.contact,
-      email: r.email,
+      fullName: decrypt(r.full_name),
+      contact: decrypt(r.contact),
+      email: decrypt(r.email),
       payments: r.payment_count,
-
-
       payment: paymentOf(r.id),
     })),
   });
@@ -395,15 +433,12 @@ app.get("/api/admin/payments/:ticket", auth, adminOnly, (req, res) => {
   const rows = id
     ? db
         .prepare(
-          "SELECT id, method, amount, created_at FROM payments WHERE request_id = ?",
-
           "SELECT id, method, amount, status, created_at FROM payments WHERE request_id = ?",
         )
         .all(id)
     : [];
   res.json({ payments: rows });
 });
-
 
 app.patch("/api/admin/payments/:id", auth, adminOnly, (req, res) => {
   const status = String(req.body.status || "");
@@ -421,10 +456,19 @@ app.get("/api/admin/payments/file/:id", auth, adminOnly, (req, res) => {
     .prepare("SELECT screenshot FROM payments WHERE id = ?")
     .get(Number(req.params.id));
   if (!row) return bad(res, "Not found.", 404);
-  res.sendFile(path.join(uploadDir, row.screenshot));
+
+  const file = path.join(uploadDir, row.screenshot);
+  if (!row.screenshot.endsWith(".enc")) return res.sendFile(file); // old, unencrypted files
+  try {
+    const ext = path.extname(row.screenshot.slice(0, -4)); // ".jpg", ".png", ...
+    res.type(ext).send(decryptBuffer(fs.readFileSync(file)));
+  } catch (e) {
+    console.error(e);
+    bad(res, "Could not read file.", 500);
+  }
 });
 
-/* ---------------- Errors ---------------- */
+//line 472 to 482, nag babasa kun may error.
 app.use("/api", (req, res) => bad(res, "Not found.", 404));
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError)
