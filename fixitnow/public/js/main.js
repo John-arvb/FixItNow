@@ -1,5 +1,5 @@
 let currentUser = null;
-const protectedSections = ["request", "payment", "track", "admin"];
+const protectedSections = ["request", "payment", "track", "admin", ];
 
 /* ---------- API helpers ---------- */
 async function api(path, options = {}) {
