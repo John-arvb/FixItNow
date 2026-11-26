@@ -23,6 +23,7 @@
         <li><a href="#request">Request Repair</a></li>
         <li><a href="#login">Login</a></li>
         <li hidden><a href="#admin" id="adminLink">Admin</a></li>
+        <li hidden><a href="#account" id="accountLink">Account</a></li>
         <li hidden><a href="#" id="logoutLink">Logout</a></li>
       </ul>
     </nav>
@@ -39,6 +40,7 @@
               placeholder="Password"
               required
             />
+            <a href="#forgot">Forgot password?</a>
             <button type="submit">Login</button>
             <p class="form-msg" id="loginMsg"></p>
           </form>
@@ -75,6 +77,71 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <section id="forgot" hidden>
+      <h2>Forgot Password</h2>
+      <form id="forgotForm">
+        <input
+          type="email"
+          id="forgotEmail"
+          placeholder="Your email"
+          required
+        />
+        <button type="submit">Send reset link</button>
+        <p id="forgotMsg"></p>
+      </form>
+    </section>
+
+    <section id="reset" hidden>
+      <h2>Set a New Password</h2>
+      <form id="resetForm">
+        <input
+          type="password"
+          id="resetPassword"
+          placeholder="New password (min 6 chars)"
+          minlength="6"
+          required
+        />
+        <button type="submit">Reset password</button>
+        <p id="resetMsg"></p>
+      </form>
+    </section>
+
+    <section id="account" hidden>
+      <h2>My Account</h2>
+
+      <form id="passwordForm">
+        <h3>Change Password</h3>
+        <input
+          type="password"
+          id="curPassword"
+          placeholder="Current password"
+          required
+        />
+        <input
+          type="password"
+          id="newPassword"
+          placeholder="New password"
+          minlength="6"
+          required
+        />
+        <button type="submit">Change password</button>
+        <p id="passwordMsg"></p>
+      </form>
+
+      <form id="emailForm">
+        <h3>Change Email</h3>
+        <input type="email" id="newEmail" placeholder="New email" required />
+        <input
+          type="password"
+          id="emailPassword"
+          placeholder="Your password"
+          required
+        />
+        <button type="submit">Change email</button>
+        <p id="emailMsg"></p>
+      </form>
     </section>
 
     <section id="home">
@@ -242,11 +309,20 @@
       <p id="requestMsg"></p>
     </section>
 
-    <section id="payment" hidden>
-      <h2>E-Wallet Payment</h2>
+        <section id="payment" hidden>
+      <h2>Payment</h2>
+      <p>Pay conveniently after receiving your repair quote.</p>
       <p>
-        Pay conveniently after receiving your repair quote. We accept the
-        following e-wallets.
+        <strong>Option 1: Pay online (recommended).</strong> Once our
+        technician sets your quote, go to <a href="#track">Track Request</a>,
+        enter your Ticket ID and click <strong>Pay online</strong>. You will be
+        taken to Maya's secure payment page. After paying, come back and click
+        <strong>Check Status</strong> to see your ticket marked as Paid.
+      </p>
+      <p>
+        <strong>Option 2: Send manually.</strong> Use one of the e-wallets
+        below, then upload your payment screenshot in the form at the bottom of
+        this page.
       </p>
 
       <div>

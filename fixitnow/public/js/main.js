@@ -1,5 +1,5 @@
 let currentUser = null;
-const protectedSections = ["request", "payment", "track", "admin", ];
+const protectedSections = ["request", "payment", "track", "admin", "account"];
 
 /* ---------- API helpers ---------- */
 async function api(path, options = {}) {
@@ -48,6 +48,8 @@ function updateNav() {
     adminLi.parentElement.hidden = !(
       currentUser && currentUser.role === "admin"
     );
+  const account = $("accountLink");
+  if (account) account.parentElement.hidden = !currentUser;
   const login = document.querySelector('a[href="#login"]');
   if (login) login.parentElement.hidden = Boolean(currentUser);
 }
@@ -96,6 +98,64 @@ $("logoutLink").addEventListener("click", async (e) => {
   updateNav();
   location.hash = "#login";
   route();
+});
+
+$("forgotForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await postJSON("/forgot-password", { email: $("forgotEmail").value });
+    setMsg(
+      "forgotMsg",
+      "If that email is registered, a reset link has been sent.",
+      true,
+    );
+  } catch (err) {
+    setMsg("forgotMsg", err.message);
+  }
+});
+
+$("resetForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const token = new URLSearchParams(location.search).get("token");
+  try {
+    await postJSON("/reset-password", {
+      token,
+      password: $("resetPassword").value,
+    });
+    history.replaceState(null, "", "/#login"); // remove the token from the URL
+    route();
+    setMsg("loginMsg", "Password updated. Please log in.", true);
+  } catch (err) {
+    setMsg("resetMsg", err.message);
+  }
+});
+
+$("passwordForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await postJSON("/account/password", {
+      currentPassword: $("curPassword").value,
+      newPassword: $("newPassword").value,
+    });
+    e.target.reset();
+    setMsg("passwordMsg", "Password changed.", true);
+  } catch (err) {
+    setMsg("passwordMsg", err.message);
+  }
+});
+
+$("emailForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await postJSON("/account/email", {
+      newEmail: $("newEmail").value,
+      password: $("emailPassword").value,
+    });
+    e.target.reset();
+    setMsg("emailMsg", "Email changed.", true);
+  } catch (err) {
+    setMsg("emailMsg", err.message);
+  }
 });
 
 /* ---------- Submit repair request ---------- */
@@ -174,6 +234,24 @@ $("trackBtn").addEventListener("click", async () => {
       list.append(li);
     });
     box.append(title, info, pay, list); // textContent everywhere, so no HTML injection
+
+    // Show a Pay button once the admin has set a quote and it isn't paid yet
+    if (request.quoteAmount && request.payment.state !== "Paid") {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = `Pay PHP ${request.quoteAmount} online`;
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        try {
+          const { url } = await postJSON(`/requests/${request.ticket}/pay`, {});
+          location.href = url; // go to Maya's payment page
+        } catch (err) {
+          btn.disabled = false;
+          alert(err.message);
+        }
+      });
+      box.append(btn);
+    }
   } catch (err) {
     const p = document.createElement("p");
     p.style.color = "#c0392b";
@@ -272,6 +350,32 @@ function adminRow(r) {
     }
   });
   statusTd.append(del);
+
+  // Quote input + button (under the Delete button)
+  const quote = document.createElement("input");
+  quote.type = "number";
+  quote.min = "1";
+  quote.placeholder = "Quote (PHP)";
+  quote.value = r.quoteAmount || "";
+  quote.style.display = "block";
+  quote.style.marginTop = "6px";
+
+  const saveQuote = document.createElement("button");
+  saveQuote.type = "button";
+  saveQuote.textContent = "Set quote";
+  saveQuote.addEventListener("click", async () => {
+    try {
+      await api(`/admin/requests/${r.ticket}/quote`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: quote.value }),
+      });
+      setMsg("adminMsg", `Quote saved for ${r.ticket}.`, true);
+    } catch (err) {
+      setMsg("adminMsg", err.message);
+    }
+  });
+  statusTd.append(quote, saveQuote);
 
   // Payment cell: current state + button to review proofs
   const payTd = document.createElement("td");

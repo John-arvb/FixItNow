@@ -90,6 +90,32 @@ db.exec(`
   );
 `);
 
+const nodemailer = require("nodemailer");
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS password_resets (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    token_hash TEXT NOT NULL,
+    expires_at TEXT NOT NULL
+  );
+`);
+
+const mailer = process.env.SMTP_HOST
+  ? nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    })
+  : null;
+
+async function sendMail(to, subject, text) {
+  if (!mailer) return console.log(`\n[EMAIL to ${to}] ${subject}\n${text}\n`);
+  await mailer.sendMail({ from: process.env.SMTP_USER, to, subject, text });
+}
+
+const sha256 = (s) => crypto.createHash("sha256").update(s).digest("hex");
+
 // Older databases: add the payment status column if it's missing
 if (
   !db
@@ -101,6 +127,14 @@ if (
     "ALTER TABLE payments ADD COLUMN status TEXT NOT NULL DEFAULT 'Pending'",
   );
 }
+
+function addColumn(table, name, type) {
+  if (!db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === name))
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${type}`);
+}
+addColumn("requests", "quote_amount", "REAL");   // price set by admin
+addColumn("requests", "maya_ref", "TEXT");       // reference of the latest Maya checkout
+addColumn("payments", "provider_ref", "TEXT");   // Maya payment id, so it is never counted twice
 
 // line 105 to 114, an nag hihimo san admin account, kun wara pa admin acc.
 if (ADMIN_EMAIL && ADMIN_PASSWORD) {
@@ -136,6 +170,7 @@ const publicRequest = (r) => ({
   serviceDate: r.service_date,
   problem: decrypt(r.problem),
   status: r.status,
+  quoteAmount: r.quote_amount,
   createdAt: r.created_at,
 });
 
@@ -165,11 +200,44 @@ function paymentOf(requestId) {
   };
 }
 
+// Asks Maya whether this ticket's latest checkout was paid, and records it once if so
+async function syncMayaPayment(row) {
+  if (!row.maya_ref || !MAYA_SECRET_KEY) return;
+  if (paymentOf(row.id).state === "Paid") return;
+  try {
+    const r = await fetch(
+      `${MAYA_API}/payments/v1/payment-rrns/${encodeURIComponent(row.maya_ref)}`,
+      { headers: { Authorization: mayaAuth(MAYA_SECRET_KEY) } },
+    );
+    const list = await r.json();
+    console.log("Maya lookup:", JSON.stringify(list)); // helps while testing
+    if (!r.ok || !Array.isArray(list)) return;
+
+    for (const p of list) {
+      const paid = p.status === "PAYMENT_SUCCESS" || p.isPaid === true;
+      const value = Number(p.amount ?? p.totalAmount?.value);
+      const already = db.prepare("SELECT 1 FROM payments WHERE provider_ref = ?").get(String(p.id));
+      if (paid && p.id && !already && (Number.isNaN(value) || value === row.quote_amount)) {
+        db.prepare(
+          `INSERT INTO payments (request_id, method, amount, screenshot, status, provider_ref)
+           VALUES (?, 'maya', ?, 'maya', 'Verified', ?)`,
+        ).run(row.id, row.quote_amount, String(p.id));
+      }
+    }
+  } catch (e) {
+    console.error("Maya sync failed:", e.message);
+  }
+}
+
 const cookieOptions = {
   httpOnly: true, // JavaScript in the page can't read it
   sameSite: "lax", // blocks cross-site POSTs
   secure: NODE_ENV === "production", // HTTPS only in production
 };
+
+const { MAYA_PUBLIC_KEY, MAYA_SECRET_KEY } = process.env;
+const MAYA_API = process.env.MAYA_API || "https://pg-sandbox.paymaya.com";
+const mayaAuth = (key) => "Basic " + Buffer.from(key + ":").toString("base64");
 
 function signIn(res, user) {
   const token = jwt.sign(
@@ -343,15 +411,15 @@ app.get("/api/requests/mine", auth, (req, res) => {
   });
 });
 
-app.get("/api/requests/:ticket", auth, (req, res) => {
+app.get("/api/requests/:ticket", auth, async (req, res) => {
   const id = idOf(req.params.ticket);
   if (!id) return bad(res, "Ticket format should look like FIN-00123.");
 
   const row = db.prepare("SELECT * FROM requests WHERE id = ?").get(id);
-  // Same message whether it doesn't exist or belongs to someone else
   if (!row || (row.user_id !== req.user.id && req.user.role !== "admin")) {
     return bad(res, "Ticket not found.", 404);
   }
+  await syncMayaPayment(row);   // <-- new
   res.json({
     request: { ...publicRequest(row), payment: paymentOf(row.id) },
     steps: STATUSES,
@@ -495,6 +563,135 @@ app.get("/api/admin/payments/file/:id", auth, adminOnly, (req, res) => {
   } catch (e) {
     console.error(e);
     bad(res, "Could not read file.", 500);
+  }
+});
+
+// Change password (logged in)
+app.post("/api/account/password", auth, authLimiter, async (req, res) => {
+  const current = String(req.body.currentPassword || "");
+  const next = String(req.body.newPassword || "");
+  if (next.length < 6 || next.length > 72)
+    return bad(res, "Password must be 6 to 72 characters.");
+
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
+  if (!user || !(await bcrypt.compare(current, user.password_hash)))
+    return bad(res, "Current password is wrong.", 401);
+
+  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?")
+    .run(await bcrypt.hash(next, 10), user.id);
+  res.json({ ok: true });
+});
+
+// Change email (logged in, confirm with password)
+app.post("/api/account/email", auth, authLimiter, async (req, res) => {
+  const email = String(req.body.newEmail || "").trim().toLowerCase();
+  const password = String(req.body.password || "");
+  if (!/^\S+@\S+\.\S+$/.test(email)) return bad(res, "Enter a valid email.");
+
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
+  if (!user || !(await bcrypt.compare(password, user.password_hash)))
+    return bad(res, "Password is wrong.", 401);
+
+  try {
+    db.prepare("UPDATE users SET email = ? WHERE id = ?").run(email, user.id);
+    res.json({ ok: true, email });
+  } catch (e) {
+    if (/UNIQUE/i.test(String(e.message)))
+      return bad(res, "That email is already registered.", 409);
+    bad(res, "Could not change email.", 500);
+  }
+});
+
+// Forgot password: always gives the same answer, so nobody can probe which emails exist
+app.post("/api/forgot-password", authLimiter, async (req, res) => {
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+
+  if (user) {
+    const token = crypto.randomBytes(32).toString("hex");
+    db.prepare("DELETE FROM password_resets WHERE user_id = ?").run(user.id);
+    db.prepare(
+      "INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, ?)",
+    ).run(user.id, sha256(token), new Date(Date.now() + 30 * 60 * 1000).toISOString());
+
+    const link = `${process.env.APP_URL || `http://localhost:${PORT}`}/?token=${token}#reset`;
+    try {
+      await sendMail(user.email, "Reset your FixItNow password",
+        `Click this link to reset your password (valid for 30 minutes):\n${link}`);
+    } catch (e) { console.error("Mail failed:", e.message); }
+  }
+  res.json({ ok: true });
+});
+
+// Reset password with the emailed token
+app.post("/api/reset-password", authLimiter, async (req, res) => {
+  const token = String(req.body.token || "");
+  const password = String(req.body.password || "");
+  if (password.length < 6 || password.length > 72)
+    return bad(res, "Password must be 6 to 72 characters.");
+
+  const row = db.prepare("SELECT * FROM password_resets WHERE token_hash = ?").get(sha256(token));
+  if (!row || row.expires_at < new Date().toISOString())
+    return bad(res, "This reset link is invalid or expired.");
+
+  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?")
+    .run(await bcrypt.hash(password, 10), row.user_id);
+  db.prepare("DELETE FROM password_resets WHERE user_id = ?").run(row.user_id);
+  res.json({ ok: true });
+});
+
+// Admin sets the quote
+app.patch("/api/admin/requests/:ticket/quote", auth, adminOnly, (req, res) => {
+  const id = idOf(req.params.ticket);
+  const amount = Number(req.body.amount);
+  if (!id) return bad(res, "Invalid ticket.");
+  if (!Number.isFinite(amount) || amount < 1 || amount > 1000000)
+    return bad(res, "Enter a valid amount (at least PHP 1).");
+  const info = db.prepare("UPDATE requests SET quote_amount = ? WHERE id = ?").run(amount, id);
+  if (!info.changes) return bad(res, "Ticket not found.", 404);
+  res.json({ ok: true });
+});
+
+// Customer starts an online payment
+app.post("/api/requests/:ticket/pay", auth, async (req, res) => {
+  const id = idOf(req.params.ticket);
+  const row = id && db.prepare("SELECT * FROM requests WHERE id = ?").get(id);
+  if (!row || row.user_id !== req.user.id) return bad(res, "Ticket not found.", 404);
+  if (!row.quote_amount) return bad(res, "No quote yet. Please wait for our technician.");
+  if (paymentOf(row.id).state === "Paid") return bad(res, "This ticket is already paid.");
+  if (!MAYA_PUBLIC_KEY) return bad(res, "Online payment is not set up.", 503);
+
+  const ticket = ticketOf(row.id);
+  const amount = row.quote_amount;                 // Maya takes pesos here, not centavos
+  const ref = `${ticket}-${crypto.randomBytes(4).toString("hex")}`;
+  const base = process.env.APP_URL || `http://localhost:${PORT}`;
+
+  try {
+    const r = await fetch(`${MAYA_API}/checkout/v1/checkouts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: mayaAuth(MAYA_PUBLIC_KEY) },
+      body: JSON.stringify({
+        totalAmount: { value: amount, currency: "PHP" },
+        items: [{
+          name: `Repair ${ticket}`,
+          quantity: 1,
+          amount: { value: amount },
+          totalAmount: { value: amount },
+        }],
+        redirectUrl: { success: `${base}/#track`, failure: `${base}/#track`, cancel: `${base}/#track` },
+        requestReferenceNumber: ref,
+      }),
+    });
+    const json = await r.json();
+    if (!r.ok || !json.redirectUrl) {
+      console.error("Maya error:", JSON.stringify(json));
+      return bad(res, "Could not start the payment.", 502);
+    }
+    db.prepare("UPDATE requests SET maya_ref = ? WHERE id = ?").run(ref, row.id);
+    res.json({ url: json.redirectUrl });
+  } catch (e) {
+    console.error(e);
+    bad(res, "Could not reach the payment service.", 502);
   }
 });
 

@@ -51,7 +51,6 @@
   min-height: 1em;
 }
 
-
 .form-box.register {
   opacity: 0;
   pointer-events: none;
@@ -143,7 +142,8 @@
   padding: 0;
 }
 
-Main Stylesheet {
+/* Main Stylesheet  */
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -191,7 +191,7 @@ nav ul li a {
   transition: 0.3s;
 }
 
-nav ul li a {
+nav ul li a:hover {
   color: #1976d2;
 }
 
@@ -252,30 +252,16 @@ section p {
   margin-bottom: 10px;
   border-radius: 8px;
   font-weight: bold;
+  background: #1976d2;
+  color: white;
+  border: 2px solid #1976d2;
   transition: 0.3s;
 }
 
-#home a {
-  background: #1976d2;
-  color: white;
-}
-
-#home a:first-of-type {
-  background: #1976d2;
-  color: white;
-  border: 2px solid #1976d2;
-  transform: translateY(-2px);
-}
-
-#home a {
+#home a:hover {
   background: white;
   color: #1976d2;
-  border: 2px solid #1976d2;
-}
-
-#home a:last-of-type {
-  background: #1976d2;
-  color: white;
+  transform: translateY(-2px);
 }
 
 #services > div {
@@ -294,7 +280,7 @@ section p {
   transition: 0.3s;
 }
 
-#services > div > div {
+#services > div > div:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 25px rgba(25, 118, 210, 0.15);
 }
@@ -379,9 +365,16 @@ button {
   transition: 0.3s;
 }
 
-button {
+button:hover {
   background: #0d47a1;
   transform: translateY(-2px);
+}
+
+.form-box button:hover {
+  background: #333;
+}
+.toggle-panel button:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 #payment > div {
